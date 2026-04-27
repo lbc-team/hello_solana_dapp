@@ -48,5 +48,11 @@ next-env.d.ts
 test-ledger/
 .surfpool/
 
+# local signer files
+/keypair.json
+/keypair_base58.txt
+/scripts/backend/keypair.json
+/scripts/backend/keypair_base58.txt
+
 # alternate package managers
 pnpm-lock.yaml

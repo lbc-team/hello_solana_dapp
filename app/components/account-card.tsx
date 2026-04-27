@@ -108,7 +108,9 @@ export function AccountCard() {
   );
 
   const tokenAccounts = useSWR(
-    targetAddress ? (["token-accounts", cluster, targetAddress] as const) : null,
+    targetAddress
+      ? (["token-accounts", cluster, targetAddress] as const)
+      : null,
     async ([, , target]) => {
       const [legacy, token2022] = await Promise.all([
         client.rpc

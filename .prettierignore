@@ -1,4 +1,7 @@
 .next
 node_modules
 pnpm-lock.yaml
+.agents
+anchor/tests
+anchor/test-support
 app/generated

@@ -73,6 +73,9 @@ Open [http://localhost:3000](http://localhost:3000), connect your wallet, and in
 │   │   ├── tokenbank/          # SPL token bank example
 │   │   └── vault/              # Vault program (Rust)
 │   └── tests/                  # TypeScript integration tests
+├── scripts/backend/            # Migrated backend utility scripts
+│   ├── src/                    # Solana RPC, scan, transfer, and demo scripts
+│   └── tsconfig.json           # ts-node config for backend scripts
 └── codama.json                 # Codama client generation config
 ```
 
@@ -154,6 +157,35 @@ npm run anchor-tstest  # Run TypeScript mocha integration tests
 `npm run anchor-test` delegates to `anchor test --skip-deploy`, and `Anchor.toml` keeps `test = "cargo test"`. This runs the Rust unit tests and LiteSVM tests under `anchor/programs/**`.
 
 `npm run anchor-tstest` delegates to `anchor run tstest`, which runs `ts-mocha` against `anchor/tests/**/*.ts`. These TypeScript tests expect a local RPC at `http://127.0.0.1:8899` with the migrated programs deployed.
+
+## Backend Scripts
+
+The old `hello_solana/backend` TypeScript scripts now live under `scripts/backend` and reuse this app's root `package.json` and `node_modules`.
+
+```bash
+npm run backend:dev
+npm run backend:listen-favorites
+npm run backend:scan-favorites
+npm run backend:scan-favorites-with-coder
+npm run backend:scan-favorites-by-block
+npm run backend:get-all-favorites-pdas
+npm run backend:scan-bank
+npm run backend:bank-deposit -- 0.5
+npm run backend:measure-cu
+npm run backend:transfer-sol
+npm run backend:scan-sol-transfers
+npm run backend:spl-token
+npm run backend:keypair-to-base58 -- ./keypair.json
+npm run backend:example-encoding
+```
+
+By default the scripts connect to `http://localhost:8899` and read `./keypair.json` from the project root when a signer is needed. Override these with environment variables:
+
+```bash
+SOLANA_RPC_ENDPOINT=http://localhost:8899 PAYER_KEYPAIR_PATH=./keypair.json npm run backend:bank-deposit -- 0.1
+```
+
+Local signer files such as `keypair.json` and `keypair_base58.txt` are ignored by git.
 
 ## Regenerating the Client
 

@@ -17,6 +17,8 @@ const eslintConfig = defineConfig([
     // Anchor tests are compiled and run by Anchor/mocha, not by the Next app:
     "anchor/tests/**",
     "anchor/test-support/**",
+    // Backend scripts run through their own ts-node config:
+    "scripts/backend/**",
   ]),
 ]);
 

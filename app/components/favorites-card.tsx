@@ -110,7 +110,11 @@ export function FavoritesCard() {
           });
           return [{ address: item.pubkey, data: account.data }];
         } catch (err) {
-          console.warn("Skipping undecodable favorites account", item.pubkey, err);
+          console.warn(
+            "Skipping undecodable favorites account",
+            item.pubkey,
+            err
+          );
           return [];
         }
       });
@@ -237,9 +241,7 @@ export function FavoritesCard() {
             <button
               onClick={handleSubmit}
               disabled={
-                isSending ||
-                parsedFavoriteNumber == null ||
-                !color.trim()
+                isSending || parsedFavoriteNumber == null || !color.trim()
               }
               className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50"
             >
@@ -297,7 +299,7 @@ export function FavoritesCard() {
         <div className="flex items-center justify-between gap-3">
           <p className="text-sm font-medium">Program Accounts</p>
           <button
-                onClick={() => void allFavoritesQuery.mutate()}
+            onClick={() => void allFavoritesQuery.mutate()}
             className="rounded-md border border-border-low px-3 py-1.5 text-xs transition hover:bg-cream"
           >
             Refresh all
