@@ -14,6 +14,9 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // Generated Codama files:
     "app/generated/**",
+    // Anchor tests are compiled and run by Anchor/mocha, not by the Next app:
+    "anchor/tests/**",
+    "anchor/test-support/**",
   ]),
 ]);
 

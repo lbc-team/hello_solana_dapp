@@ -10,9 +10,7 @@ import { useSolanaClient } from "./lib/solana-client-context";
 import { ellipsify } from "./lib/explorer";
 import { VaultCard } from "./components/vault-card";
 import { GridBackground } from "./components/grid-background";
-import { ThemeToggle } from "./components/theme-toggle";
-import { ClusterSelect } from "./components/cluster-select";
-import { WalletButton } from "./components/wallet-button";
+import { AppHeader } from "./components/app-header";
 import { useCluster } from "./components/cluster-context";
 
 export default function Home() {
@@ -80,17 +78,7 @@ export default function Home() {
       <GridBackground />
 
       <div className="relative z-10">
-        {/* Header */}
-        <header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-          <span className="text-sm font-semibold tracking-tight">
-            Solana Starter Kit
-          </span>
-          <div className="flex items-center gap-3">
-            <ThemeToggle />
-            <ClusterSelect />
-            <WalletButton />
-          </div>
-        </header>
+        <AppHeader />
 
         <main className="mx-auto max-w-6xl px-6">
           {/* Hero */}
