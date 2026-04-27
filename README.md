@@ -21,7 +21,7 @@ Open [http://localhost:3000](http://localhost:3000), connect your wallet, and in
 - **Wallet connection** via wallet-standard with auto-discovery and dropdown UI
 - **Cluster switching** — devnet, testnet, mainnet, and localnet from the header
 - **Wallet balance** display with airdrop button (devnet/testnet/localnet)
-- **SOL Vault program** — deposit and withdraw SOL from a personal PDA vault
+- **Anchor programs** — vault plus migrated favorites, SOL bank, event log, and token bank examples
 - **Toast notifications** with explorer links for every transaction
 - **Error handling** — human-readable messages for common Solana and program errors
 - **Codama-generated client** — type-safe program interactions using `@solana/kit`
@@ -66,7 +66,13 @@ Open [http://localhost:3000](http://localhost:3000), connect your wallet, and in
 │   │   └── explorer.ts         # Explorer URL builder + address helpers
 │   └── page.tsx                # Main page
 ├── anchor/                     # Anchor workspace
-│   └── programs/vault/         # Vault program (Rust)
+│   ├── programs/
+│   │   ├── anchor_favorites/   # PDA-backed favorites example
+│   │   ├── bank/               # SOL deposit/withdraw example
+│   │   ├── emit_log/           # Anchor event emission example
+│   │   ├── tokenbank/          # SPL token bank example
+│   │   └── vault/              # Vault program (Rust)
+│   └── tests/                  # TypeScript integration tests
 └── codama.json                 # Codama client generation config
 ```
 
@@ -77,7 +83,7 @@ To test against a local validator instead of devnet:
 1. **Start a local validator**
 
    ```bash
-   solana-test-validator
+   surfpool start
    ```
 
 2. **Deploy the program locally**
@@ -137,14 +143,17 @@ The included vault program is already deployed to devnet. To deploy your own:
 
 ## Testing
 
-Tests use [LiteSVM](https://github.com/LiteSVM/litesvm), a fast lightweight Solana VM for testing.
+The Anchor workspace has two separate test entry points.
 
 ```bash
 npm run anchor-build   # Build the program first
-npm run anchor-test    # Run tests
+npm run anchor-test    # Run Rust/Cargo tests only
+npm run anchor-tstest  # Run TypeScript mocha integration tests
 ```
 
-The tests are in `anchor/programs/vault/src/tests.rs` and automatically use the program ID from `declare_id!`.
+`npm run anchor-test` delegates to `anchor test --skip-deploy`, and `Anchor.toml` keeps `test = "cargo test"`. This runs the Rust unit tests and LiteSVM tests under `anchor/programs/**`.
+
+`npm run anchor-tstest` delegates to `anchor run tstest`, which runs `ts-mocha` against `anchor/tests/**/*.ts`. These TypeScript tests expect a local RPC at `http://127.0.0.1:8899` with the migrated programs deployed.
 
 ## Regenerating the Client
 

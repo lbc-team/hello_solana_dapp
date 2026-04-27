@@ -46,3 +46,7 @@ next-env.d.ts
 
 # solana local validator
 test-ledger/
+.surfpool/
+
+# alternate package managers
+pnpm-lock.yaml

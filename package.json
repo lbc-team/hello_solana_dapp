@@ -3,6 +3,7 @@
   "scripts": {
     "anchor-build": "cd anchor && anchor build",
     "anchor-test": "cd anchor && anchor test --skip-deploy",
+    "anchor-tstest": "cd anchor && anchor run tstest",
     "build": "next build",
     "ci": "npm run build && npm run lint && npm run format:check",
     "codama:js": "codama run js",
@@ -42,17 +43,25 @@
     "ws": "^8.18.3"
   },
   "devDependencies": {
+    "@anchor-lang/core": "^1.0.1",
     "@codama/nodes-from-anchor": "^1.3.8",
     "@codama/renderers-js": "^1.5.5",
+    "@solana/spl-token": "^0.4.14",
+    "@solana/web3.js": "^1.98.4",
     "@tailwindcss/postcss": "^4",
+    "@types/chai": "^5.2.3",
+    "@types/mocha": "^10.0.10",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "chai": "^6.2.2",
     "codama": "^1.5.0",
     "eslint": "^9",
     "eslint-config-next": "16.0.10",
+    "mocha": "^11.7.5",
     "prettier": "^3.6.2",
     "tailwindcss": "^4",
+    "ts-mocha": "^11.1.0",
     "typescript": "^5"
   }
 }
