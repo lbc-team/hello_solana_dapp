@@ -2,7 +2,7 @@
   "name": "hello_solana_dapp",
   "scripts": {
     "anchor-build": "cd anchor && anchor build",
-    "anchor-test": "cd anchor && anchor test --skip-deploy",
+    "anchor-test": "cd anchor && anchor test --skip-deploy --skip-local-validator",
     "anchor-tstest": "cd anchor && anchor run tstest",
     "backend:bank-deposit": "ts-node --project scripts/backend/tsconfig.json scripts/backend/src/bank_deposit.ts",
     "backend:dev": "ts-node --project scripts/backend/tsconfig.json scripts/backend/src/index.ts",

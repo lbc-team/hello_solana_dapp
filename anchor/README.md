@@ -71,6 +71,14 @@ Each user gets their own vault derived from their wallet address.
 
 Run the Anchor tests:
 
+
+
 ```bash
 anchor test --skip-deploy
+anchor test --skip-local-validator
+anchor test -p emit_log --validator legacy
 ```
+
+关闭占用的端口: lsof -ti :8899 | xargs kill -9
+
+legacy： solana-test-validator
