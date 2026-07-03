@@ -6,6 +6,7 @@ import {
   Transaction,
   sendAndConfirmTransaction,
   ComputeBudgetProgram,
+  PublicKey,
 } from "@solana/web3.js";
 import { RPC_ENDPOINT, PAYER_KEYPAIR_PATH } from "./config";
 import fs from "fs";
@@ -18,6 +19,7 @@ async function main() {
     Buffer.from(JSON.parse(fs.readFileSync(PAYER_KEYPAIR_PATH, "utf8")))
   );
   console.log("payer1 publicKey:", payer1.publicKey.toBase58());
+  // const payer2 = new PublicKey("iBSaRRAARcM6UJnFuuMXRJHEfjXXe7qXfp7prvxyWpz");
   const payer2 = Keypair.generate();
 
   const { blockhash, lastValidBlockHeight } =
@@ -41,7 +43,7 @@ async function main() {
 
   const ix = SystemProgram.transfer({
     fromPubkey: payer1.publicKey,
-    toPubkey: payer2.publicKey,
+    toPubkey: payer2,
     lamports: LAMPORTS_PER_SOL,
   });
 
