@@ -5,6 +5,7 @@
     "anchor-test": "cd anchor && anchor test --skip-deploy --skip-local-validator",
     "anchor-tstest": "cd anchor && anchor run tstest",
     "backend:bank-deposit": "ts-node --project scripts/backend/tsconfig.json scripts/backend/src/bank_deposit.ts",
+    "backend:counter": "ts-node --project scripts/backend/tsconfig.json scripts/backend/src/counter.ts",
     "backend:dev": "ts-node --project scripts/backend/tsconfig.json scripts/backend/src/index.ts",
     "backend:example-encoding": "ts-node --project scripts/backend/tsconfig.json scripts/backend/src/examples/instruction_encoding_demo.ts",
     "backend:get-all-favorites-pdas": "ts-node --project scripts/backend/tsconfig.json scripts/backend/src/get_all_favorites_pdas.ts",
