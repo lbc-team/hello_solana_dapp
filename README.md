@@ -29,13 +29,13 @@ npm run dev
 
 ## 技术栈
 
-| 层级           | 技术                             |
-| -------------- | -------------------------------- |
-| 前端           | Next.js 16, React 19, TypeScript |
-| 样式           | Tailwind CSS v4                  |
-| Solana 客户端  | `@solana/kit`, wallet-standard   |
-| 程序客户端     | Codama 生成, `@solana/kit`       |
-| 程序           | Anchor (Rust)                    |
+| 层级          | 技术                             |
+| ------------- | -------------------------------- |
+| 前端          | Next.js 16, React 19, TypeScript |
+| 样式          | Tailwind CSS v4                  |
+| Solana 客户端 | `@solana/kit`, wallet-standard   |
+| 程序客户端    | Codama 生成, `@solana/kit`       |
+| 程序          | Anchor (Rust)                    |
 
 ## 项目结构
 
@@ -97,7 +97,7 @@ npm run dev
    anchor build
    anchor deploy
    cd ..
-   npm run codama:js   # 使用本地程序 ID 重新生成客户端
+   npm run codama:js   # 使用本地程序 ID 重新生成客户端 
    ```
 
 3. **切换到 localnet** — 在应用中使用顶部导航栏的集群选择器。

@@ -19,8 +19,8 @@ async function main() {
     Buffer.from(JSON.parse(fs.readFileSync(PAYER_KEYPAIR_PATH, "utf8")))
   );
   console.log("payer1 publicKey:", payer1.publicKey.toBase58());
-  // const payer2 = new PublicKey("iBSaRRAARcM6UJnFuuMXRJHEfjXXe7qXfp7prvxyWpz");
-  const payer2 = Keypair.generate();
+  const payer2 = new PublicKey("iBSaRRAARcM6UJnFuuMXRJHEfjXXe7qXfp7prvxyWpz");
+  // const payer2 = Keypair.generate();
 
   const { blockhash, lastValidBlockHeight } =
     await connection.getLatestBlockhash();

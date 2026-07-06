@@ -9,12 +9,12 @@ import { Connection, PublicKey } from "@solana/web3.js";
 import { BorshCoder } from "@anchor-lang/core";
 import favoritesIdl from "./idl/favorites.json";
 import { Favorites } from "./types/favorites";
+import { RPC_ENDPOINT } from "./config";
 
-// Favorites 合约程序 ID
+// Favorites 合约程序 ID - 从 IDL 获取
 const FAVORITES_PROGRAM_ID = new PublicKey(
-  "AfWzQDmP7gzMaiFPmwwQysvVTEuxPvKtDcUA5hfTwiwW"
+  (favoritesIdl as any).address
 );
-const RPC_ENDPOINT = "http://localhost:8899";
 
 // 定义 Favorites 账户数据结构
 interface FavoritesAccount {

@@ -6,6 +6,7 @@
  */
 
 import { Connection, PublicKey } from "@solana/web3.js";
+import bs58 from "bs58";
 import favoritesIdl from "./idl/favorites.json";
 import { Favorites } from "./types/favorites";
 import { decodeInstruction } from "./utils/instruction_decoder";
@@ -48,7 +49,8 @@ async function processBlock(
       maxSupportedTransactionVersion: 0,
       transactionDetails: "full",
       rewards: false,
-    });
+      encoding: "json",
+    } as any);
 
     if (!block || !block.transactions) {
       return records;
@@ -94,8 +96,11 @@ async function processBlock(
         const accounts = ix.accountKeyIndexes.map((idx: number) =>
           accountKeys.get(idx)
         );
-        // data 保持 Buffer 格式，直接使用
-        return { programId, accounts, data: ix.data };
+        // encoding: "json" 时 data 是 base58 字符串，需要转为 Buffer
+        const data = typeof ix.data === "string"
+          ? Buffer.from(bs58.decode(ix.data))
+          : Buffer.from(ix.data);
+        return { programId, accounts, data };
       });
 
       // 处理主指令（使用和 scan_favorites_with_coder.ts 相同的方式）
@@ -168,8 +173,11 @@ async function processBlock(
               const accounts = ix.accounts.map((idx: number) =>
                 accountKeys.get(idx)
               );
-              // 内部指令的 data 已经是 base58 字符串格式
-              return { programId, accounts, data: ix.data };
+              // encoding: "json" 时 data 是 base58 字符串，需要转为 Buffer
+              const innerData = typeof ix.data === "string"
+                ? Buffer.from(bs58.decode(ix.data))
+                : Buffer.from(ix.data);
+              return { programId, accounts, data: innerData };
             }
           );
 

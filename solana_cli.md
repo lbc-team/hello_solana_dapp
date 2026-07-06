@@ -117,7 +117,7 @@ spl-token mint usdrxLChKFKAnztF9SHEKPUGNx6tvD97air6ebAKmKb 8 D4J7WWnxKXR6ZSwbd5j
 spl-token balance <mint account> 
 spl-token supply  <mint account> ：
 spl-token account-info  <mint account> ： 查看 Token mint 的账户信息
-spl-token authorize <mint account> mint —disable:  关闭 mint 权限  
+spl-token authorize <mint account> mint --disable:  关闭 mint 权限  
 
 spl-token transfer <mint account>  <TOKEN_AMOUNT> <RECIPIENT_WALLET_ADDRESS or RECIPIENT_TOKEN_ACCOUNT_ADDRESS>
 
