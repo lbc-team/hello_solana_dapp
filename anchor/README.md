@@ -75,7 +75,8 @@ Run the Anchor tests:
 
 ```bash
 anchor test --skip-deploy
-anchor test --skip-local-validator
+anchor test --skip-deploy --skip-local-validator
+anchor test -p emit_log --skip-deploy --skip-local-validator
 anchor test -p emit_log --validator legacy
 ```
 

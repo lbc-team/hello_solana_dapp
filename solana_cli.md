@@ -1,3 +1,15 @@
+# anchor cli
+
+```
+anchor init <projecct-name> 
+anchor new <program-name>
+
+anchor build
+anchor test
+anchor program deploy
+
+```
+
 # Solana Command
 
 solana-keygen new --outfile 命令生成新的密钥对，后跟存储密钥对的文件路径。
@@ -114,4 +126,5 @@ spl-token transfer <mint account>  <TOKEN_AMOUNT> <RECIPIENT_WALLET_ADDRESS or R
 spl-token initialize-metadata  OPEN_SPACE_S8 OP8 https://raw.githubusercontent.com/lbc-team/hello_gill/refs/heads/main/metadata/nft-metadata.json
 
 
+# surfpool
 surfpool start
