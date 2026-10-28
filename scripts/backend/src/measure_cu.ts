@@ -1,3 +1,4 @@
+import "./compat";
 import {
   Connection,
   Keypair,
@@ -9,20 +10,25 @@ import {
 } from "@solana/web3.js";
 import { Program, BN, AnchorProvider, setProvider } from "@anchor-lang/core";
 import idl from "./idl/favorites.json";
-import { PROGRAM_ID, RPC_ENDPOINT, PAYER_KEYPAIR_PATH } from "./config";
+import { RPC_ENDPOINT, PAYER_KEYPAIR_PATH } from "./config";
 import { Favorites } from "./types/favorites";
 import fs from "fs";
 
 // 🧮 CU 测量工具
 class ComputeUnitMeasurer {
   private connection: Connection;
-  private payer: Keypair;
+  private payer!: Keypair;
 
   constructor() {
     this.connection = new Connection(RPC_ENDPOINT, "confirmed");
-    this.payer = Keypair.fromSecretKey(
-      Buffer.from(JSON.parse(fs.readFileSync(PAYER_KEYPAIR_PATH, "utf8")))
-    );
+  }
+
+  async init() {
+    this.payer = fs.existsSync(PAYER_KEYPAIR_PATH)
+      ? await Keypair.fromSecretKey(
+          Buffer.from(JSON.parse(fs.readFileSync(PAYER_KEYPAIR_PATH, "utf8")))
+        )
+      : await Keypair.generate();
   }
 
   // 📊 测量交易的 CU 消耗
@@ -47,8 +53,10 @@ class ComputeUnitMeasurer {
       ).blockhash;
 
       // 模拟交易
+      const extraSigners = (tx as any)._extraSigners || [];
       const simulation = await this.connection.simulateTransaction(tx, [
         this.payer,
+        ...extraSigners,
       ]);
 
       if (simulation.value.err) {
@@ -56,7 +64,7 @@ class ComputeUnitMeasurer {
         return -1;
       }
 
-      const unitsConsumed = simulation.value.unitsConsumed || 0;
+      const unitsConsumed = Number(simulation.value.unitsConsumed || 0);
       console.log(`✅ ${name}: ${unitsConsumed} CU`);
 
       return unitsConsumed;
@@ -74,12 +82,12 @@ class ComputeUnitMeasurer {
 
     // 1. 普通 SOL 转账
     results["SOL转账"] = await this.measureTransaction("SOL转账", async () => {
-      const recipient = Keypair.generate();
+      const recipient = await Keypair.generate();
       return new Transaction().add(
         SystemProgram.transfer({
           fromPubkey: this.payer.publicKey,
           toPubkey: recipient.publicKey,
-          lamports: LAMPORTS_PER_SOL,
+          lamports: BigInt(LAMPORTS_PER_SOL),
         })
       );
     });
@@ -88,8 +96,8 @@ class ComputeUnitMeasurer {
     results["创建账户"] = await this.measureTransaction(
       "创建账户",
       async () => {
-        const newAccount = Keypair.generate();
-        return new Transaction().add(
+        const newAccount = await Keypair.generate();
+        const tx = new Transaction().add(
           SystemProgram.createAccount({
             fromPubkey: this.payer.publicKey,
             newAccountPubkey: newAccount.publicKey,
@@ -99,6 +107,8 @@ class ComputeUnitMeasurer {
             programId: SystemProgram.programId,
           })
         );
+        (tx as any)._extraSigners = [newAccount];
+        return tx;
       }
     );
 
@@ -107,7 +117,7 @@ class ComputeUnitMeasurer {
       "Favorites合约",
       async () => {
         // 创建 Provider 和 Program
-        const createAnchorWallet = (keypair: Keypair) => ({
+        const createAnchorWallet = (keypair: any) => ({
           publicKey: keypair.publicKey,
           signTransaction: async (tx: any) => {
             tx.partialSign(keypair);
@@ -121,7 +131,7 @@ class ComputeUnitMeasurer {
         });
 
         const wallet = createAnchorWallet(this.payer);
-        const provider = new AnchorProvider(this.connection, wallet, {
+        const provider = new AnchorProvider(this.connection as any, wallet as any, {
           commitment: "confirmed",
         });
         setProvider(provider);
@@ -129,22 +139,22 @@ class ComputeUnitMeasurer {
         const program = new Program<Favorites>(idl as Favorites, provider);
 
         // 计算 PDA
-        const [favoritesPda] = PublicKey.findProgramAddressSync(
-          [Buffer.from("favorites"), this.payer.publicKey.toBuffer()],
-          program.programId
+        const [favoritesPda] = (PublicKey as any).findProgramAddressSync(
+          [Buffer.from("favorites"), (this.payer.publicKey as any).toBuffer()],
+          program.programId as any
         );
 
         // 构建指令
         const setFavoritesIx = await program.methods
           .setFavorites(new BN(42), "blue")
           .accountsPartial({
-            user: this.payer.publicKey,
-            favorites: favoritesPda,
-            systemProgram: SystemProgram.programId,
+            user: this.payer.publicKey as any,
+            favorites: favoritesPda as any,
+            systemProgram: SystemProgram.programId as any,
           })
           .instruction();
 
-        return new Transaction().add(setFavoritesIx);
+        return new Transaction().add(setFavoritesIx as any);
       }
     );
 
@@ -152,7 +162,7 @@ class ComputeUnitMeasurer {
     results["带优先级费用转账"] = await this.measureTransaction(
       "带优先级费用转账",
       async () => {
-        const recipient = Keypair.generate();
+        const recipient = await Keypair.generate();
         const priorityFeeIx = ComputeBudgetProgram.setComputeUnitPrice({
           microLamports: 1000,
         });
@@ -161,7 +171,7 @@ class ComputeUnitMeasurer {
           SystemProgram.transfer({
             fromPubkey: this.payer.publicKey,
             toPubkey: recipient.publicKey,
-            lamports: LAMPORTS_PER_SOL,
+            lamports: BigInt(LAMPORTS_PER_SOL),
           })
         );
       }
@@ -196,6 +206,7 @@ class ComputeUnitMeasurer {
 // 🚀 运行测量
 async function main() {
   const measurer = new ComputeUnitMeasurer();
+  await measurer.init();
   await measurer.runAllTests();
 }
 

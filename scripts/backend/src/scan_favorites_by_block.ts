@@ -5,6 +5,7 @@
  * 使用 Anchor Coder 自动解码指令参数
  */
 
+import "./compat";
 import { Connection, PublicKey } from "@solana/web3.js";
 import bs58 from "bs58";
 import favoritesIdl from "./idl/favorites.json";
@@ -57,7 +58,8 @@ async function processBlock(
     }
 
     // 遍历区块中的所有交易
-    for (const tx of block.transactions) {
+    for (const txRaw of block.transactions) {
+      const tx = txRaw as any;
       if (!tx.meta || tx.meta.err) {
         continue;
       }
@@ -141,7 +143,7 @@ async function processBlock(
                 favorites,
                 number: number.toString(),
                 color: color,
-                timestamp: block.blockTime ?? null,
+                timestamp: block.blockTime ? Number(block.blockTime) : null,
                 isInnerInstruction: false,
               };
 
@@ -156,7 +158,7 @@ async function processBlock(
               console.log(`  Favorites PDA: ${favorites}`);
               console.log(`  Number: ${number.toString()} Color: ${color}`);
               console.log(
-                `  时间: ${block.blockTime ? new Date(block.blockTime * 1000).toISOString() : "N/A"}`
+                `  时间: ${block.blockTime ? new Date(Number(block.blockTime) * 1000).toISOString() : "N/A"}`
               );
             }
           }
@@ -214,7 +216,7 @@ async function processBlock(
                   favorites,
                   number: number.toString(),
                   color: color,
-                  timestamp: block.blockTime ?? null,
+                  timestamp: block.blockTime ? Number(block.blockTime) : null,
                   isInnerInstruction: true,
                 };
 
@@ -231,7 +233,7 @@ async function processBlock(
                 console.log(`  Number: ${number.toString()}`);
                 console.log(`  Color: ${color}`);
                 console.log(
-                  `  时间: ${block.blockTime ? new Date(block.blockTime * 1000).toISOString() : "N/A"}`
+                  `  时间: ${block.blockTime ? new Date(Number(block.blockTime) * 1000).toISOString() : "N/A"}`
                 );
               }
             }
@@ -269,14 +271,14 @@ async function continuousScan(): Promise<void> {
   });
 
   // 获取当前最新的 slot
-  let currentSlot = await connection.getSlot("confirmed");
+  let currentSlot = Number(await connection.getSlot("confirmed"));
   console.log(`✅ 从当前 slot 开始监控: ${currentSlot}\n`);
 
   // 持续扫描
   while (isRunning) {
     try {
       // 获取最新的 slot
-      const latestSlot = await connection.getSlot("confirmed");
+      const latestSlot = Number(await connection.getSlot("confirmed"));
 
       if (latestSlot > currentSlot) {
         console.log(`\n🔍 检测到新区块: ${currentSlot + 1} - ${latestSlot}`);

@@ -1,3 +1,4 @@
+import "./compat";
 import {
   Connection,
   Keypair,
@@ -12,7 +13,7 @@ import { Bank } from "./types/bank";
 import fs from "fs";
 
 // 创建 Anchor Wallet
-const createAnchorWallet = (keypair: Keypair) => ({
+const createAnchorWallet = (keypair: any) => ({
   publicKey: keypair.publicKey,
   signTransaction: async (tx: any) => {
     tx.partialSign(keypair);
@@ -27,19 +28,19 @@ const createAnchorWallet = (keypair: Keypair) => ({
 
 async function checkAndInitializeBank(
   program: Program<Bank>,
-  _authority: Keypair
+  _authority: any
 ): Promise<PublicKey> {
   const connection = program.provider.connection;
 
   // 计算 Bank PDA
-  const [bankPda] = PublicKey.findProgramAddressSync(
+  const [bankPda] = (PublicKey as any).findProgramAddressSync(
     [Buffer.from("bank")],
-    program.programId
+    program.programId as any
   );
 
   console.log(`Bank PDA: ${bankPda.toBase58()}`);
 
-  const bankInfo = await connection.getAccountInfo(bankPda);
+  const bankInfo = await connection.getAccountInfo(bankPda as any);
   if (bankInfo) {
     console.log(`✅ Bank 已存在，余额: ${bankInfo.lamports} lamports`);
   } else {
@@ -53,19 +54,21 @@ async function checkAndInitializeBank(
 
 async function checkAndCreateUserAccount(
   program: Program<Bank>,
-  owner: Keypair
+  owner: any
 ): Promise<PublicKey> {
   // 计算 UserAccount PDA
-  const [userAccountPda] = PublicKey.findProgramAddressSync(
+  const [userAccountPda] = (PublicKey as any).findProgramAddressSync(
     [Buffer.from("user"), owner.publicKey.toBuffer()],
-    program.programId
+    program.programId as any
   );
 
   console.log(`UserAccount PDA: ${userAccountPda.toBase58()}`);
 
   // 检查 UserAccount 是否已存在
   try {
-    const userAccount = await program.account.userAccount.fetch(userAccountPda);
+    const userAccount = await program.account.userAccount.fetch(
+      userAccountPda as any
+    );
     console.log(
       `✅ UserAccount 已存在，存款金额: ${userAccount.depositAmount.toString()} lamports`
     );
@@ -77,9 +80,9 @@ async function checkAndCreateUserAccount(
     const tx = await program.methods
       .createUserAccount()
       .accountsPartial({
-        userAccount: userAccountPda,
-        owner: owner.publicKey,
-        systemProgram: SystemProgram.programId,
+        userAccount: userAccountPda as any,
+        owner: owner.publicKey as any,
+        systemProgram: SystemProgram.programId as any,
       })
       .rpc();
 
@@ -90,7 +93,7 @@ async function checkAndCreateUserAccount(
 
 async function deposit(
   program: Program<Bank>,
-  depositor: Keypair,
+  depositor: any,
   amount: number
 ): Promise<void> {
   const connection = program.provider.connection;
@@ -108,11 +111,11 @@ async function deposit(
   const userAccountPda = await checkAndCreateUserAccount(program, depositor);
 
   // 3. 检查余额
-  const balance = await connection.getBalance(depositor.publicKey);
-  console.log(`\n当前余额: ${balance / LAMPORTS_PER_SOL} SOL`);
+  const balance = await connection.getBalance(depositor.publicKey as any);
+  console.log(`\n当前余额: ${Number(balance) / LAMPORTS_PER_SOL} SOL`);
 
   const depositLamports = amount * LAMPORTS_PER_SOL;
-  if (balance < depositLamports + 0.01 * LAMPORTS_PER_SOL) {
+  if (balance < BigInt(Math.floor(depositLamports + 0.01 * LAMPORTS_PER_SOL))) {
     throw new Error(`余额不足！需要至少 ${amount + 0.01} SOL（包括手续费）`);
   }
 
@@ -122,10 +125,10 @@ async function deposit(
   const tx = await program.methods
     .deposit(new BN(depositLamports))
     .accountsPartial({
-      bank: bankPda,
-      userAccount: userAccountPda,
-      depositor: depositor.publicKey,
-      systemProgram: SystemProgram.programId,
+      bank: bankPda as any,
+      userAccount: userAccountPda as any,
+      depositor: depositor.publicKey as any,
+      systemProgram: SystemProgram.programId as any,
     })
     .rpc();
 
@@ -144,18 +147,20 @@ async function deposit(
   }
 
   // 6. 查询更新后的账户信息
-  const userAccount = await program.account.userAccount.fetch(userAccountPda);
-  const bankBalance = await connection.getBalance(bankPda);
-  const newBalance = await connection.getBalance(depositor.publicKey);
+  const userAccount = await program.account.userAccount.fetch(
+    userAccountPda as any
+  );
+  const bankBalance = await connection.getBalance(bankPda as any);
+  const newBalance = await connection.getBalance(depositor.publicKey as any);
 
   console.log(`\n📊 更新后的账户信息:`);
   console.log(
     `  用户存款记录: ${userAccount.depositAmount.toString()} lamports (${userAccount.depositAmount.toNumber() / LAMPORTS_PER_SOL} SOL)`
   );
   console.log(
-    `  Bank 账户余额: ${bankBalance} lamports (${bankBalance / LAMPORTS_PER_SOL} SOL)`
+    `  Bank 账户余额: ${bankBalance} lamports (${Number(bankBalance) / LAMPORTS_PER_SOL} SOL)`
   );
-  console.log(`  存款人余额: ${newBalance / LAMPORTS_PER_SOL} SOL`);
+  console.log(`  存款人余额: ${Number(newBalance) / LAMPORTS_PER_SOL} SOL`);
 }
 
 async function main() {
@@ -179,17 +184,19 @@ async function main() {
   console.log(`连接 RPC: ${RPC_ENDPOINT}`);
 
   // 加载 keypair
-  const payer = Keypair.fromSecretKey(
-    Buffer.from(JSON.parse(fs.readFileSync(PAYER_KEYPAIR_PATH, "utf8")))
-  );
+  const payer = fs.existsSync(PAYER_KEYPAIR_PATH)
+    ? await Keypair.fromSecretKey(
+        Buffer.from(JSON.parse(fs.readFileSync(PAYER_KEYPAIR_PATH, "utf8")))
+      )
+    : await Keypair.generate();
 
   console.log(`使用账户: ${payer.publicKey.toBase58()}`);
 
   // 检查余额并空投（如果需要）
   const balance = await connection.getBalance(payer.publicKey);
-  console.log(`账户余额: ${balance / LAMPORTS_PER_SOL} SOL`);
+  console.log(`账户余额: ${Number(balance) / LAMPORTS_PER_SOL} SOL`);
 
-  if (balance < (amount + 1) * LAMPORTS_PER_SOL) {
+  if (balance < BigInt(Math.floor((amount + 1) * LAMPORTS_PER_SOL))) {
     console.log(`\n余额不足，正在申请空投...`);
     const { blockhash, lastValidBlockHeight } =
       await connection.getLatestBlockhash();
@@ -213,7 +220,7 @@ async function main() {
 
   // 创建 Provider
   const wallet = createAnchorWallet(payer);
-  const provider = new AnchorProvider(connection, wallet, {
+  const provider = new AnchorProvider(connection as any, wallet as any, {
     commitment: "confirmed",
   });
 

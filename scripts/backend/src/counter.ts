@@ -1,3 +1,4 @@
+import "./compat";
 import {
   Connection,
   Keypair,
@@ -12,7 +13,7 @@ import { SolanaCounter } from "./types/solana_counter";
 import fs from "fs";
 
 // 创建 Anchor Wallet
-const createAnchorWallet = (keypair: Keypair) => ({
+const createAnchorWallet = (keypair: any) => ({
   publicKey: keypair.publicKey,
   signTransaction: async (tx: any) => {
     tx.partialSign(keypair);
@@ -26,8 +27,8 @@ const createAnchorWallet = (keypair: Keypair) => ({
 });
 
 // 计算 Counter PDA
-function getCounterPda(programId: PublicKey): PublicKey {
-  const [pda] = PublicKey.findProgramAddressSync(
+function getCounterPda(programId: any): PublicKey {
+  const [pda] = (PublicKey as any).findProgramAddressSync(
     [Buffer.from("global-counter")],
     programId
   );
@@ -37,13 +38,15 @@ function getCounterPda(programId: PublicKey): PublicKey {
 // 初始化计数器
 async function initializeCounter(
   program: Program<SolanaCounter>,
-  payer: Keypair
+  payer: any
 ): Promise<void> {
   const counterPda = getCounterPda(program.programId);
   console.log(`Counter PDA: ${counterPda.toBase58()}`);
 
   // 检查是否已初始化
-  const accountInfo = await program.provider.connection.getAccountInfo(counterPda);
+  const accountInfo = await program.provider.connection.getAccountInfo(
+    counterPda as any
+  );
   if (accountInfo) {
     console.log("计数器已存在，跳过初始化");
     return;
@@ -53,9 +56,9 @@ async function initializeCounter(
   const tx = await program.methods
     .initialize()
     .accountsPartial({
-      counterAccount: counterPda,
-      user: payer.publicKey,
-      systemProgram: SystemProgram.programId,
+      counterAccount: counterPda as any,
+      user: payer.publicKey as any,
+      systemProgram: SystemProgram.programId as any,
     })
     .rpc();
 
@@ -69,52 +72,45 @@ async function incrementCounter(
   const counterPda = getCounterPda(program.programId);
 
   // 读取当前值
-  const counter = await program.account.counter.fetch(counterPda);
+  const counter = await program.account.counter.fetch(counterPda as any);
   console.log(`当前计数值: ${counter.count.toString()}`);
 
   console.log("正在递增...");
   const tx = await program.methods
     .increment()
     .accountsPartial({
-      counterAccount: counterPda,
+      counterAccount: counterPda as any,
     })
     .rpc();
 
   console.log(`递增成功！交易签名: ${tx}`);
 
   // 读取更新后的值
-  const updatedCounter = await program.account.counter.fetch(counterPda);
+  const updatedCounter = await program.account.counter.fetch(counterPda as any);
   console.log(`更新后计数值: ${updatedCounter.count.toString()}`);
 }
 
 async function main() {
   const args = process.argv.slice(2);
-  const command = args[0];
-
-  if (!command) {
-    console.log("用法: npm run backend:counter <command>\n");
-    console.log("可用命令:");
-    console.log("  init, initialize  初始化计数器");
-    console.log("  inc, increment    递增计数器");
-    console.log("  both              初始化并递增");
-    process.exit(1);
-  }
+  const command = args[0] || "both";
 
   // 连接本地节点
   const connection = new Connection(RPC_ENDPOINT, "confirmed");
   console.log(`\n连接 RPC: ${RPC_ENDPOINT}`);
 
   // 加载 keypair
-  const payer = Keypair.fromSecretKey(
-    Buffer.from(JSON.parse(fs.readFileSync(PAYER_KEYPAIR_PATH, "utf8")))
-  );
+  const payer = fs.existsSync(PAYER_KEYPAIR_PATH)
+    ? await Keypair.fromSecretKey(
+        Buffer.from(JSON.parse(fs.readFileSync(PAYER_KEYPAIR_PATH, "utf8")))
+      )
+    : await Keypair.generate();
   console.log(`使用账户: ${payer.publicKey.toBase58()}`);
 
   // 检查余额
   const balance = await connection.getBalance(payer.publicKey);
-  console.log(`账户余额: ${balance / LAMPORTS_PER_SOL} SOL`);
+  console.log(`账户余额: ${Number(balance) / LAMPORTS_PER_SOL} SOL`);
 
-  if (balance < 0.01 * LAMPORTS_PER_SOL) {
+  if (balance < BigInt(Math.floor(0.01 * LAMPORTS_PER_SOL))) {
     console.log("余额不足，正在申请空投...");
     const { blockhash, lastValidBlockHeight } =
       await connection.getLatestBlockhash();
@@ -132,10 +128,13 @@ async function main() {
 
   // 创建 Provider 和 Program
   const wallet = createAnchorWallet(payer);
-  const provider = new AnchorProvider(connection, wallet, {
+  const provider = new AnchorProvider(connection as any, wallet as any, {
     commitment: "confirmed",
   });
-  const program = new Program<SolanaCounter>(counterIdl as SolanaCounter, provider);
+  const program = new Program<SolanaCounter>(
+    counterIdl as SolanaCounter,
+    provider
+  );
 
   // 执行命令
   switch (command) {

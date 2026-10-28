@@ -1,3 +1,4 @@
+import "./compat";
 import { Connection, PublicKey } from "@solana/web3.js";
 import * as fs from "fs";
 import bs58 from "bs58";
@@ -114,7 +115,7 @@ async function processSignature(
                     from: source,
                     to: destination,
                     amount: lamports,
-                    timestamp: tx.blockTime ?? null,
+                    timestamp: tx.blockTime ? Number(tx.blockTime) : null,
                   };
 
                   transfers.push(record);
@@ -140,7 +141,7 @@ async function processSignature(
                     `  金额: ${lamports / 1e9} SOL (${lamports} lamports)`
                   );
                   console.log(
-                    `  时间: ${tx.blockTime ? new Date(tx.blockTime * 1000).toISOString() : "N/A"}`
+                    `  时间: ${tx.blockTime ? new Date(Number(tx.blockTime) * 1000).toISOString() : "N/A"}`
                   );
                 }
               }
@@ -222,7 +223,7 @@ async function continuousScan(): Promise<void> {
             const transfers = await processSignature(
               connection,
               sig.signature,
-              sig.slot
+              Number(sig.slot)
             );
             allTransfers.push(...transfers);
 

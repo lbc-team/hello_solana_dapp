@@ -5,6 +5,7 @@
  * 并解析账户数据
  */
 
+import "./compat";
 import { Connection, PublicKey } from "@solana/web3.js";
 import { BorshCoder } from "@anchor-lang/core";
 import favoritesIdl from "./idl/favorites.json";
@@ -28,10 +29,11 @@ const coder = new BorshCoder(favoritesIdl as Favorites);
 /**
  * 解析 Favorites 账户数据
  */
-function parseFavoritesAccount(data: Buffer): FavoritesAccount | null {
+function parseFavoritesAccount(data: any): FavoritesAccount | null {
   try {
+    const buf = Buffer.isBuffer(data) ? data : Buffer.from(data);
     // 使用 Anchor 的 BorshAccountsCoder 解码
-    const decoded = coder.accounts.decode("Favorites", data);
+    const decoded = coder.accounts.decode("Favorites", buf);
     return {
       number: decoded.number as bigint,
       color: decoded.color as string,
@@ -167,9 +169,9 @@ async function findFavoritesPDAByUser(userAddress: string): Promise<void> {
 
   try {
     // 使用标准的 PDA 推导方式（根据实际的种子调整）
-    const [pda, bump] = PublicKey.findProgramAddressSync(
-      [Buffer.from("favorites"), userPubkey.toBuffer()],
-      FAVORITES_PROGRAM_ID
+    const [pda, bump] = (PublicKey as any).findProgramAddressSync(
+      [Buffer.from("favorites"), (userPubkey as any).toBuffer()],
+      FAVORITES_PROGRAM_ID as any
     );
 
     console.log(`计算出的 PDA: ${pda.toBase58()}`);

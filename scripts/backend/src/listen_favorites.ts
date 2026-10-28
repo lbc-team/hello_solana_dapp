@@ -1,3 +1,4 @@
+import "./compat";
 import { Connection, PublicKey } from "@solana/web3.js";
 import { Program, AnchorProvider, setProvider } from "@anchor-lang/core";
 import idl from "./idl/favorites.json";
@@ -11,7 +12,7 @@ async function listenToFavorites() {
   const connection = new Connection(RPC_ENDPOINT, "confirmed");
 
   // 创建一个空的 provider（仅用于只读操作）
-  const provider = new AnchorProvider(connection, {} as any, {
+  const provider = new AnchorProvider(connection as any, {} as any, {
     commitment: "confirmed",
   });
 
@@ -25,7 +26,7 @@ async function listenToFavorites() {
 
   // 监听所有与该程序相关的日志
   const listenerId = connection.onLogs(
-    program.programId,
+    program.programId as any,
     (logs, context) => {
       console.log("\n" + "=".repeat(50));
       console.log(`📝 接收到新日志 - Slot: ${context.slot}`);
@@ -85,17 +86,17 @@ async function listenToFavorites() {
     console.log("监听最后一个 Favorites 账户变化...");
     const lastAccount = accounts[accounts.length - 1];
     connection.onAccountChange(
-      lastAccount.publicKey,
-      (accountInfo, context) => {
+      lastAccount.publicKey as any,
+      (accountInfo: any, context: any) => {
         console.log(`📝 账户更新: ${lastAccount.publicKey.toBase58()}`);
         console.log(`📊 Slot: ${context.slot}`);
 
         // 尝试解析账户数据
         try {
-          const decoded = program.coder.accounts.decode(
-            "favorites",
-            accountInfo.data
-          );
+          const buf = Buffer.isBuffer(accountInfo.data)
+            ? accountInfo.data
+            : Buffer.from(accountInfo.data);
+          const decoded = program.coder.accounts.decode("favorites", buf);
           console.log(`📈 新数据:`);
           console.log(`   Number: ${decoded.number.toString()}`);
           console.log(`   Color: ${decoded.color}`);
@@ -105,7 +106,7 @@ async function listenToFavorites() {
 
         console.log("🔄".repeat(20) + "\n");
       },
-      { commitment: "confirmed" }
+      "confirmed"
     );
   } catch (error) {
     console.log("⚠️  获取现有账户失败（可能是第一次运行）:", error);

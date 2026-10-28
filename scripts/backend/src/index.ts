@@ -1,3 +1,4 @@
+import "./compat";
 import {
   Connection,
   Keypair,
@@ -11,71 +12,9 @@ import { RPC_ENDPOINT, PAYER_KEYPAIR_PATH } from "./config";
 import { Favorites } from "./types/favorites";
 import fs from "fs";
 
-// 为兼容 @anchor-lang/core 补充 PublicKey 互操作属性与方法
-if (!(PublicKey.prototype as any).toBuffer) {
-  (PublicKey.prototype as any).toBuffer = function () {
-    return Buffer.from(this.toBytes());
-  };
-}
-if (!("_bn" in PublicKey.prototype)) {
-  Object.defineProperty(PublicKey.prototype, "_bn", {
-    get() {
-      return new BN(this.toBytes());
-    },
-    configurable: true,
-  });
-}
-const origEquals = PublicKey.prototype.equals;
-PublicKey.prototype.equals = function (address: any) {
-  if (this === address) return true;
-  if (!address) return false;
-  const left = (this as any)._publicKeyBytes || this.toBytes();
-  const right =
-    address._publicKeyBytes ||
-    (typeof address.toBytes === "function" ? address.toBytes() : undefined);
-  if (!right) return false;
-  for (let i = 0; i < 32; i++) {
-    if (left[i] !== right[i]) return false;
-  }
-  return true;
-};
-
 async function main() {
   // 连接本地节点
   const connection = new Connection(RPC_ENDPOINT, "confirmed");
-
-  // 为兼容 Anchor 解码，包装 getAccountInfo / getAccountInfoAndContext / getProgramAccounts 数据为 Buffer
-  const origGetAccountInfo = connection.getAccountInfo.bind(connection);
-  connection.getAccountInfo = (async (...args: any[]) => {
-    const info = await (origGetAccountInfo as any)(...args);
-    if (info && info.data && !Buffer.isBuffer(info.data)) {
-      info.data = Buffer.from(info.data);
-    }
-    return info;
-  }) as any;
-
-  const origGetAccountInfoAndContext =
-    connection.getAccountInfoAndContext.bind(connection);
-  connection.getAccountInfoAndContext = (async (...args: any[]) => {
-    const res = await (origGetAccountInfoAndContext as any)(...args);
-    if (res && res.value && res.value.data && !Buffer.isBuffer(res.value.data)) {
-      res.value.data = Buffer.from(res.value.data);
-    }
-    return res;
-  }) as any;
-
-  const origGetProgramAccounts = connection.getProgramAccounts.bind(connection);
-  connection.getProgramAccounts = (async (...args: any[]) => {
-    const res = await (origGetProgramAccounts as any)(...args);
-    if (Array.isArray(res)) {
-      for (const item of res) {
-        if (item.account && item.account.data && !Buffer.isBuffer(item.account.data)) {
-          item.account.data = Buffer.from(item.account.data);
-        }
-      }
-    }
-    return res;
-  }) as any;
 
   // 生成钱包
   const payer = await Keypair.generate();

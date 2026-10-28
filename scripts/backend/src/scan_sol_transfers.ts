@@ -4,6 +4,7 @@
  * 使用解析指令的方式监听指定账号的所有 SOL 转账记录
  */
 
+import "./compat";
 import { Connection, PublicKey, SystemProgram } from "@solana/web3.js";
 
 const RPC_ENDPOINT = "http://localhost:8899";
@@ -67,9 +68,9 @@ async function processTransaction(
             const type = from === publicKey.toBase58() ? "send" : "receive";
 
             records.push({
-              slot: tx.slot,
+              slot: Number(tx.slot),
               signature,
-              blockTime: tx.blockTime ?? null,
+              blockTime: tx.blockTime ? Number(tx.blockTime) : null,
               type,
               from,
               to,
@@ -95,9 +96,9 @@ async function processTransaction(
             const type = from === publicKey.toBase58() ? "send" : "receive";
 
             records.push({
-              slot: tx.slot,
+              slot: Number(tx.slot),
               signature,
-              blockTime: tx.blockTime ?? null,
+              blockTime: tx.blockTime ? Number(tx.blockTime) : null,
               type,
               from,
               to,
@@ -133,9 +134,9 @@ async function processTransaction(
                 const type = from === publicKey.toBase58() ? "send" : "receive";
 
                 records.push({
-                  slot: tx.slot,
+                  slot: Number(tx.slot),
                   signature,
-                  blockTime: tx.blockTime ?? null,
+                  blockTime: tx.blockTime ? Number(tx.blockTime) : null,
                   type,
                   from,
                   to,

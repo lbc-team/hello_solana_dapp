@@ -1,3 +1,4 @@
+import "./compat";
 import { Connection, PublicKey } from "@solana/web3.js";
 import * as fs from "fs";
 import bs58 from "bs58";
@@ -128,7 +129,7 @@ async function processSignature(
                 favorites,
                 number: params.number.toString(),
                 color: params.color,
-                timestamp: tx.blockTime ?? null,
+                timestamp: tx.blockTime ? Number(tx.blockTime) : null,
               };
 
               records.push(record);
@@ -143,7 +144,7 @@ async function processSignature(
               console.log(`  Number: ${params.number}`);
               console.log(`  Color: ${params.color}`);
               console.log(
-                `  时间: ${tx.blockTime ? new Date(tx.blockTime * 1000).toISOString() : "N/A"}`
+                `  时间: ${tx.blockTime ? new Date(Number(tx.blockTime) * 1000).toISOString() : "N/A"}`
               );
             } else {
               console.log(`  ⚠️  无法解析指令参数`);
@@ -225,7 +226,7 @@ async function continuousScan(): Promise<void> {
             const records = await processSignature(
               connection,
               sig.signature,
-              sig.slot
+              Number(sig.slot)
             );
             allRecords.push(...records);
 

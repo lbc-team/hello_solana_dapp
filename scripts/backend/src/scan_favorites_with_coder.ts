@@ -5,6 +5,7 @@
  * 自动解码指令参数，无需手动解析
  */
 
+import "./compat";
 import { Connection, PublicKey } from "@solana/web3.js";
 import * as fs from "fs";
 import favoritesIdl from "./idl/favorites.json";
@@ -102,7 +103,7 @@ async function processSignature(
               favorites,
               number: number.toString(),
               color: color,
-              timestamp: tx.blockTime ?? null,
+              timestamp: tx.blockTime ? Number(tx.blockTime) : null,
             };
 
             records.push(record);
@@ -117,7 +118,7 @@ async function processSignature(
             console.log(`  Number: ${number.toString()}`);
             console.log(`  Color: ${color}`);
             console.log(
-              `  时间: ${tx.blockTime ? new Date(tx.blockTime * 1000).toISOString() : "N/A"}`
+              `  时间: ${tx.blockTime ? new Date(Number(tx.blockTime) * 1000).toISOString() : "N/A"}`
             );
           }
         }
@@ -186,7 +187,7 @@ async function continuousScan(): Promise<void> {
           const records = await processSignature(
             connection,
             sig.signature,
-            sig.slot
+            Number(sig.slot)
           );
           allRecords.push(...records);
         }
