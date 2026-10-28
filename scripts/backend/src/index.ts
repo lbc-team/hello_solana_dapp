@@ -11,16 +11,78 @@ import { RPC_ENDPOINT, PAYER_KEYPAIR_PATH } from "./config";
 import { Favorites } from "./types/favorites";
 import fs from "fs";
 
+// 为兼容 @anchor-lang/core 补充 PublicKey 互操作属性与方法
+if (!(PublicKey.prototype as any).toBuffer) {
+  (PublicKey.prototype as any).toBuffer = function () {
+    return Buffer.from(this.toBytes());
+  };
+}
+if (!("_bn" in PublicKey.prototype)) {
+  Object.defineProperty(PublicKey.prototype, "_bn", {
+    get() {
+      return new BN(this.toBytes());
+    },
+    configurable: true,
+  });
+}
+const origEquals = PublicKey.prototype.equals;
+PublicKey.prototype.equals = function (address: any) {
+  if (this === address) return true;
+  if (!address) return false;
+  const left = (this as any)._publicKeyBytes || this.toBytes();
+  const right =
+    address._publicKeyBytes ||
+    (typeof address.toBytes === "function" ? address.toBytes() : undefined);
+  if (!right) return false;
+  for (let i = 0; i < 32; i++) {
+    if (left[i] !== right[i]) return false;
+  }
+  return true;
+};
+
 async function main() {
   // 连接本地节点
   const connection = new Connection(RPC_ENDPOINT, "confirmed");
 
+  // 为兼容 Anchor 解码，包装 getAccountInfo / getAccountInfoAndContext / getProgramAccounts 数据为 Buffer
+  const origGetAccountInfo = connection.getAccountInfo.bind(connection);
+  connection.getAccountInfo = (async (...args: any[]) => {
+    const info = await (origGetAccountInfo as any)(...args);
+    if (info && info.data && !Buffer.isBuffer(info.data)) {
+      info.data = Buffer.from(info.data);
+    }
+    return info;
+  }) as any;
+
+  const origGetAccountInfoAndContext =
+    connection.getAccountInfoAndContext.bind(connection);
+  connection.getAccountInfoAndContext = (async (...args: any[]) => {
+    const res = await (origGetAccountInfoAndContext as any)(...args);
+    if (res && res.value && res.value.data && !Buffer.isBuffer(res.value.data)) {
+      res.value.data = Buffer.from(res.value.data);
+    }
+    return res;
+  }) as any;
+
+  const origGetProgramAccounts = connection.getProgramAccounts.bind(connection);
+  connection.getProgramAccounts = (async (...args: any[]) => {
+    const res = await (origGetProgramAccounts as any)(...args);
+    if (Array.isArray(res)) {
+      for (const item of res) {
+        if (item.account && item.account.data && !Buffer.isBuffer(item.account.data)) {
+          item.account.data = Buffer.from(item.account.data);
+        }
+      }
+    }
+    return res;
+  }) as any;
+
   // 生成钱包
-  const payer = Keypair.generate();
-  // const payer = Keypair.fromSecretKey(Buffer.from(JSON.parse(fs.readFileSync(PAYER_KEYPAIR_PATH, "utf8"))));
+  const payer = await Keypair.generate();
+  // const payer = await Keypair.fromSecretKey(Buffer.from(JSON.parse(fs.readFileSync(PAYER_KEYPAIR_PATH, "utf8"))));
 
   // 从 Keypair 创建 AnchorWallet
-  const createAnchorWallet = (keypair: Keypair) => ({
+  const createAnchorWallet = (keypair: any) => ({
     publicKey: keypair.publicKey,
     signTransaction: async (tx: any) => {
       tx.partialSign(keypair);
@@ -36,7 +98,7 @@ async function main() {
   const wallet = createAnchorWallet(payer);
 
   // 创建 Provider
-  const provider = new AnchorProvider(connection, wallet, {
+  const provider = new AnchorProvider(connection as any, wallet as any, {
     commitment: "confirmed",
   });
 
@@ -47,8 +109,8 @@ async function main() {
     await connection.getLatestBlockhash();
 
   const balance = await connection.getBalance(payer.publicKey);
-  console.log("账户余额:", balance / LAMPORTS_PER_SOL, "SOL");
-  if (balance < 10 * LAMPORTS_PER_SOL) {
+  console.log("账户余额:", Number(balance) / LAMPORTS_PER_SOL, "SOL");
+  if (balance < BigInt(10 * LAMPORTS_PER_SOL)) {
     // Airdrop 一些 SOL 以便支付手续费
     const airdropSignature = await connection.requestAirdrop(
       payer.publicKey,
@@ -63,18 +125,18 @@ async function main() {
   }
 
   // 计算 PDA
-  const [favoritesPda] = PublicKey.findProgramAddressSync(
-    [Buffer.from("favorites"), payer.publicKey.toBuffer()],
-    program.programId
+  const [favoritesPda] = await PublicKey.findProgramAddress(
+    [Buffer.from("favorites"), payer.publicKey.toBytes()],
+    program.programId as any
   );
 
   // 构建 setFavorites 指令 - 使用 accountsPartial 避免类型检查问题
   const tx = await program.methods
     .setFavorites(new BN(43), "blue")
     .accountsPartial({
-      user: payer.publicKey,
-      favorites: favoritesPda,
-      systemProgram: SystemProgram.programId,
+      user: payer.publicKey as any,
+      favorites: favoritesPda as any,
+      systemProgram: SystemProgram.programId as any,
     })
     .rpc();
 
@@ -84,7 +146,7 @@ async function main() {
   console.log("交易日志:", txInfo?.meta?.logMessages);
 
   // 获取某个PDA favorites 账户信息
-  const favoritesAccount = await program.account.favorites.fetch(favoritesPda);
+  const favoritesAccount = await program.account.favorites.fetch(favoritesPda as any);
   console.log("Number:", favoritesAccount.number.toString());
   console.log("Color:", favoritesAccount.color);
 
@@ -96,7 +158,7 @@ async function main() {
   // console.log("Accounts:", accounts);
 
   // 获取所有 PDA 账户 (使用未解析版本以获得原始数据)
-  const allAccounts = await connection.getProgramAccounts(program.programId);
+  const allAccounts = await connection.getProgramAccounts(program.programId as any);
   console.log("All Accounts:", allAccounts.length);
 
   for (const account of allAccounts) {
