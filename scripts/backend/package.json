@@ -1,0 +1,34 @@
+{
+  "name": "backend-scripts",
+  "version": "1.0.0",
+  "description": "Backend Solana scripts powered by @solana/web3.js v3",
+  "private": true,
+  "scripts": {
+    "bank-deposit": "ts-node src/bank_deposit.ts",
+    "counter": "ts-node src/counter.ts",
+    "dev": "ts-node src/index.ts",
+    "example-encoding": "ts-node src/examples/instruction_encoding_demo.ts",
+    "get-all-favorites-pdas": "ts-node src/get_all_favorites_pdas.ts",
+    "keypair-to-base58": "ts-node src/keypair_to_base58.ts",
+    "listen-favorites": "ts-node src/listen_favorites.ts",
+    "measure-cu": "ts-node src/measure_cu.ts",
+    "scan-bank": "ts-node src/scan_bank.ts",
+    "scan-favorites": "ts-node src/scan_favorites.ts",
+    "scan-favorites-by-block": "ts-node src/scan_favorites_by_block.ts",
+    "scan-favorites-with-coder": "ts-node src/scan_favorites_with_coder.ts",
+    "scan-sol-transfers": "ts-node src/scan_sol_transfers.ts",
+    "spl-token": "ts-node src/spl_token_operations.ts",
+    "transfer-sol": "ts-node src/transfer_sol.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@solana/web3.js": "^3.1.1",
+    "bs58": "^6.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "ts-node": "^10.9.2",
+    "typescript": "^5"
+  }
+}
+

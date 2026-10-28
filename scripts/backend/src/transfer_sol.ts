@@ -15,7 +15,7 @@ async function main() {
   // 连接本地节点
   const connection = new Connection(RPC_ENDPOINT, "confirmed");
 
-  const payer1 = Keypair.fromSecretKey(
+  const payer1 = await Keypair.fromSecretKey(
     Buffer.from(JSON.parse(fs.readFileSync(PAYER_KEYPAIR_PATH, "utf8")))
   );
   console.log("payer1 publicKey:", payer1.publicKey.toBase58());
@@ -26,8 +26,8 @@ async function main() {
     await connection.getLatestBlockhash();
 
   const balance = await connection.getBalance(payer1.publicKey);
-  console.log("账户余额:", balance / LAMPORTS_PER_SOL, "SOL");
-  if (balance < 10 * LAMPORTS_PER_SOL) {
+  console.log("账户余额:", Number(balance) / LAMPORTS_PER_SOL, "SOL");
+  if (balance < BigInt(10 * LAMPORTS_PER_SOL)) {
     // Airdrop 一些 SOL 以便支付手续费
     const airdropSignature = await connection.requestAirdrop(
       payer1.publicKey,
@@ -44,7 +44,7 @@ async function main() {
   const ix = SystemProgram.transfer({
     fromPubkey: payer1.publicKey,
     toPubkey: payer2,
-    lamports: LAMPORTS_PER_SOL,
+    lamports: BigInt(LAMPORTS_PER_SOL),
   });
 
   // 设置计算单元限制（默认转账需要约200-300个单元）
@@ -78,7 +78,7 @@ async function main() {
   console.log("Transaction Signature", sig);
 
   const balance2 = await connection.getBalance(payer1.publicKey);
-  console.log("账户余额:", balance2 / LAMPORTS_PER_SOL, "SOL");
+  console.log("账户余额:", Number(balance2) / LAMPORTS_PER_SOL, "SOL");
 }
 
 main().catch(console.error);

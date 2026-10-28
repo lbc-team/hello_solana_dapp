@@ -39,9 +39,9 @@ describe("emit_log", () => {
 
             console.log(`\n🎯 Total events captured: ${events.length}`);
             expect(events.length).to.equal(2);
-            expect(events[0].name).to.equal("MyEvent");
+            expect(events[0].name).to.equal("myEvent");
             expect(events[0].data.value.toNumber()).to.equal(12);
-            expect(events[1].name).to.equal("MySecondEvent");
+            expect(events[1].name).to.equal("mySecondEvent");
             expect(events[1].data.value.toNumber()).to.equal(3);
             expect(events[1].data.message).to.equal("hello world");
         } else {
