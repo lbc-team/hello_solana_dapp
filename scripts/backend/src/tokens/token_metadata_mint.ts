@@ -32,12 +32,14 @@ import {
   getAccount,
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
+
 import {
   PROGRAM_ID as METAPLEX_METADATA_PROGRAM_ID,
   createCreateMetadataAccountV3Instruction,
   Metadata,
   DataV2,
 } from "@metaplex-foundation/mpl-token-metadata";
+
 import * as fs from "fs";
 import { RPC_ENDPOINT, PAYER_KEYPAIR_PATH } from "../config";
 
@@ -289,13 +291,11 @@ export async function main() {
   console.log(`🏷️ Token Mint 地址 : ${mint.toBase58()}`);
   console.log(`📄 Metadata PDA   : ${metadataPda.toBase58()}`);
   console.log(
-    `💰 支付者剩余代币  : ${
-      Number(payerAccountFinal.amount) / 10 ** decimals
+    `💰 支付者剩余代币  : ${Number(payerAccountFinal.amount) / 10 ** decimals
     } (${payerAta.address.toBase58()})`
   );
   console.log(
-    `💰 接收者收到代币  : ${
-      Number(recipientAccountFinal.amount) / 10 ** decimals
+    `💰 接收者收到代币  : ${Number(recipientAccountFinal.amount) / 10 ** decimals
     } (${recipientAta.address.toBase58()})`
   );
   console.log("================================================\n");
