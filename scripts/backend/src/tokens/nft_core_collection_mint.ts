@@ -1,5 +1,5 @@
 /**
- * 演示 6: Metaplex Core (MPL-Core) NFT 合集创建、子资产铸造与转账
+ * 演示 6: Metaplex Core (MPL-Core) NFT 合集创建、子资产铸造与转账 (nft_core_collection_mint.ts)
  *
  * 背景与技术选型：
  * - 在 Solana 生态中，早期 NFT 采用 SPL Token + Token Metadata (4 个账户模型：Mint + ATA + Metadata + Master Edition)；

@@ -23,6 +23,7 @@
     "backend:token2022-mint": "npm --prefix scripts/backend run token2022-mint",
     "backend:nft-mint": "npm --prefix scripts/backend run nft-mint",
     "backend:nft-collection-mint": "npm --prefix scripts/backend run nft-collection-mint",
+    "backend:nft-core-collection-mint": "npm --prefix scripts/backend run nft-core-collection-mint",
     "backend:nft2022-collection-mint": "npm --prefix scripts/backend run nft2022-collection-mint",
     "backend:transfer-sol": "npm --prefix scripts/backend run transfer-sol",
     "build": "next build",

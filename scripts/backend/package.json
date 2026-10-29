@@ -23,7 +23,8 @@
     "token2022-mint": "ts-node src/tokens/token2022_mint.ts",
     "nft-mint": "ts-node src/tokens/nft_mint.ts",
     "nft-collection-mint": "ts-node src/tokens/nft_collection_mint.ts",
-    "nft2022-collection-mint": "ts-node src/tokens/nft2022_collection_mint.ts",
+    "nft-core-collection-mint": "ts-node src/tokens/nft_core_collection_mint.ts",
+    "nft2022-collection-mint": "ts-node src/tokens/nft_core_collection_mint.ts",
     "transfer-sol": "ts-node src/transfer_sol.ts",
     "typecheck": "tsc --noEmit"
   },
