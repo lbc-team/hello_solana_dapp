@@ -25,6 +25,7 @@ async function listenToFavorites() {
   console.log(`🌐 RPC 端点: ${RPC_ENDPOINT}`);
 
   // 监听所有与该程序相关的日志
+  // solana logs
   const listenerId = connection.onLogs(
     program.programId as any,
     (logs, context) => {

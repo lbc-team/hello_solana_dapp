@@ -45,12 +45,13 @@ async function processBlock(
   const records: SetFavoritesRecord[] = [];
 
   try {
-    // 获取区块信息，包含完整的交易数据
+    // 获取区块信息，包含完整的交易数据（必须使用 confirmed 级别与 getSlot("confirmed") 对齐）
     const block = await connection.getBlock(slot, {
       maxSupportedTransactionVersion: 0,
       transactionDetails: "full",
       rewards: false,
       encoding: "json",
+      commitment: "confirmed",
     } as any);
 
     if (!block || !block.transactions) {
@@ -99,9 +100,10 @@ async function processBlock(
           accountKeys.get(idx)
         );
         // encoding: "json" 时 data 是 base58 字符串，需要转为 Buffer
-        const data = typeof ix.data === "string"
-          ? Buffer.from(bs58.decode(ix.data))
-          : Buffer.from(ix.data);
+        const data =
+          typeof ix.data === "string"
+            ? Buffer.from(bs58.decode(ix.data))
+            : Buffer.from(ix.data);
         return { programId, accounts, data };
       });
 
@@ -176,9 +178,10 @@ async function processBlock(
                 accountKeys.get(idx)
               );
               // encoding: "json" 时 data 是 base58 字符串，需要转为 Buffer
-              const innerData = typeof ix.data === "string"
-                ? Buffer.from(bs58.decode(ix.data))
-                : Buffer.from(ix.data);
+              const innerData =
+                typeof ix.data === "string"
+                  ? Buffer.from(bs58.decode(ix.data))
+                  : Buffer.from(ix.data);
               return { programId, accounts, data: innerData };
             }
           );
@@ -243,8 +246,17 @@ async function processBlock(
     }
   } catch (error) {
     // 区块可能不存在或已被跳过
-    if (error instanceof Error && error.message.includes("was skipped")) {
-      // 跳过的区块，不打印错误
+    const errMsg = error instanceof Error ? error.message : String(error);
+    const errCode = (error as any)?.code;
+    if (
+      errMsg.includes("was skipped") ||
+      errMsg.includes("not available") ||
+      errMsg.includes("missing in long-term storage") ||
+      errCode === -32007 ||
+      errCode === -32004 ||
+      errCode === -32009
+    ) {
+      // 跳过或未就绪的空区块，不打印错误
     } else {
       console.error(`处理区块 ${slot} 时出错:`, error);
     }
